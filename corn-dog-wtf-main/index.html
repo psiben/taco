@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Corndog tracker</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+</head>
+<body>
+    <div id="root"></div>
+    <script src="/app.js"></script>
+    <div id="root"></div>
+    <script src="https://unpkg.com/react/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script type="text/babel">
+
+        const { useState, useEffect } = React;
+        const API_BASE_URL = 'https://localhost:5000/locations'; // Use environment variable or config file in real applications
+
+        function App() {
+            const [locations, setLocations] = useState([]);
+            const [newLocation, setNewLocation] = useState({ name: '', description: '', latitude: '', longitude: '' });
+
+            useEffect(() => {
+                axios.get(API_BASE_URL)
+                    .then(response => {
+                        if (response.data) {
+                            setLocations(response.data);
+                        }
+                    })
+                    .catch(error => console.error('Error fetching locations:', error));
+            }, []);
+
+            const addLocation = () => {
+                // Validate newLocation before sending
+                axios.post(API_BASE_URL, newLocation)
+                    .then(response => {
+                        if (response.data) {
+                            setLocations([...locations, response.data]);
+                        }
+                    })
+                    .catch(error => console.error('Error adding location:', error));
+            };
+
+            const rateLocation = (id, rating) => {
+                axios.put(`${API_BASE_URL}/${id}/rate`, { rating })
+                    .then(response => {
+                        if (response.data) {
+                            setLocations(locations.map(loc => loc._id === id ? response.data : loc));
+                        }
+                    })
+                    .catch(error => console.error('Error rating location:', error));
+            }
+        };
